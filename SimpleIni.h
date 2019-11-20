@@ -2933,16 +2933,16 @@ public:
             // the distribution but are publically available from unicode.org
             // at http://www.unicode.org/Public/PROGRAMS/CVTUTF/
             ConversionResult retval;
-            const UTF8 * pUtf8 = (const UTF8 *) a_pInputData;
-            if (sizeof(wchar_t) == sizeof(UTF32)) {
-                UTF32 * pUtf32 = (UTF32 *) a_pOutputData;
+            const siUTF8 * pUtf8 = (const siUTF8 *) a_pInputData;
+            if (sizeof(wchar_t) == sizeof(siUTF32)) {
+                siUTF32 * pUtf32 = (siUTF32 *) a_pOutputData;
                 retval = ConvertUTF8toUTF32(
                     &pUtf8, pUtf8 + a_uInputDataLen,
                     &pUtf32, pUtf32 + a_uOutputDataSize,
                     lenientConversion);
             }
-            else if (sizeof(wchar_t) == sizeof(UTF16)) {
-                UTF16 * pUtf16 = (UTF16 *) a_pOutputData;
+            else if (sizeof(wchar_t) == sizeof(siUTF16)) {
+                siUTF16 * pUtf16 = (siUTF16 *) a_pOutputData;
                 retval = ConvertUTF8toUTF16(
                     &pUtf8, pUtf8 + a_uInputDataLen,
                     &pUtf16, pUtf16 + a_uOutputDataSize,
@@ -3020,16 +3020,16 @@ public:
             // the distribution but are publically available from unicode.org
             // at http://www.unicode.org/Public/PROGRAMS/CVTUTF/
             ConversionResult retval;
-            UTF8 * pUtf8 = (UTF8 *) a_pOutputData;
-            if (sizeof(wchar_t) == sizeof(UTF32)) {
-                const UTF32 * pUtf32 = (const UTF32 *) a_pInputData;
+            siUTF8 * pUtf8 = (siUTF8 *) a_pOutputData;
+            if (sizeof(wchar_t) == sizeof(siUTF32)) {
+                const siUTF32 * pUtf32 = (const siUTF32 *) a_pInputData;
                 retval = ConvertUTF32toUTF8(
                     &pUtf32, pUtf32 + uInputLen,
                     &pUtf8, pUtf8 + a_uOutputDataSize,
                     lenientConversion);
             }
-            else if (sizeof(wchar_t) == sizeof(UTF16)) {
-                const UTF16 * pUtf16 = (const UTF16 *) a_pInputData;
+            else if (sizeof(wchar_t) == sizeof(siUTF16)) {
+                const siUTF16 * pUtf16 = (const siUTF16 *) a_pInputData;
                 retval = ConvertUTF16toUTF8(
                     &pUtf16, pUtf16 + uInputLen,
                     &pUtf8, pUtf8 + a_uOutputDataSize,

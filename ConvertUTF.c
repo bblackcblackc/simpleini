@@ -32,7 +32,7 @@
 	to eliminate compiler warnings.
     July 2003: slight mods to back out aggressive FFFE detection.
     Jan 2004: updated switches in from-UTF8 conversions.
-    Oct 2004: updated to use UNI_MAX_LEGAL_UTF32 in UTF-32 conversions.
+    Oct 2004: updated to use UNI_MAX_LEGAL_siUTF32 in UTF-32 conversions.
 
     See the header file "ConvertUTF.h" for complete documentation.
 
@@ -46,26 +46,26 @@
 
 static const int halfShift  = 10; /* used for shifting by 10 bits */
 
-static const UTF32 halfBase = 0x0010000UL;
-static const UTF32 halfMask = 0x3FFUL;
+static const siUTF32 halfBase = 0x0010000UL;
+static const siUTF32 halfMask = 0x3FFUL;
 
-#define UNI_SUR_HIGH_START  (UTF32)0xD800
-#define UNI_SUR_HIGH_END    (UTF32)0xDBFF
-#define UNI_SUR_LOW_START   (UTF32)0xDC00
-#define UNI_SUR_LOW_END     (UTF32)0xDFFF
+#define UNI_SUR_HIGH_START  (siUTF32)0xD800
+#define UNI_SUR_HIGH_END    (siUTF32)0xDBFF
+#define UNI_SUR_LOW_START   (siUTF32)0xDC00
+#define UNI_SUR_LOW_END     (siUTF32)0xDFFF
 #define false	   0
 #define true	    1
 
 /* --------------------------------------------------------------------- */
 
 ConversionResult ConvertUTF32toUTF16 (
-	const UTF32** sourceStart, const UTF32* sourceEnd, 
-	UTF16** targetStart, UTF16* targetEnd, ConversionFlags flags) {
+	const siUTF32** sourceStart, const siUTF32* sourceEnd,
+	siUTF16** targetStart, siUTF16* targetEnd, ConversionFlags flags) {
     ConversionResult result = conversionOK;
-    const UTF32* source = *sourceStart;
-    UTF16* target = *targetStart;
+    const siUTF32* source = *sourceStart;
+    siUTF16* target = *targetStart;
     while (source < sourceEnd) {
-	UTF32 ch;
+	siUTF32 ch;
 	if (target >= targetEnd) {
 	    result = targetExhausted; break;
 	}
@@ -81,7 +81,7 @@ ConversionResult ConvertUTF32toUTF16 (
 		    *target++ = UNI_REPLACEMENT_CHAR;
 		}
 	    } else {
-		*target++ = (UTF16)ch; /* normal case */
+		*target++ = (siUTF16)ch; /* normal case */
 	    }
 	} else if (ch > UNI_MAX_LEGAL_UTF32) {
 	    if (flags == strictConversion) {
@@ -96,8 +96,8 @@ ConversionResult ConvertUTF32toUTF16 (
 		result = targetExhausted; break;
 	    }
 	    ch -= halfBase;
-	    *target++ = (UTF16)((ch >> halfShift) + UNI_SUR_HIGH_START);
-	    *target++ = (UTF16)((ch & halfMask) + UNI_SUR_LOW_START);
+	    *target++ = (siUTF16)((ch >> halfShift) + UNI_SUR_HIGH_START);
+	    *target++ = (siUTF16)((ch & halfMask) + UNI_SUR_LOW_START);
 	}
     }
     *sourceStart = source;
@@ -108,16 +108,16 @@ ConversionResult ConvertUTF32toUTF16 (
 /* --------------------------------------------------------------------- */
 
 ConversionResult ConvertUTF16toUTF32 (
-	const UTF16** sourceStart, const UTF16* sourceEnd, 
-	UTF32** targetStart, UTF32* targetEnd, ConversionFlags flags) {
+	const siUTF16** sourceStart, const siUTF16* sourceEnd,
+	siUTF32** targetStart, siUTF32* targetEnd, ConversionFlags flags) {
     ConversionResult result = conversionOK;
-    const UTF16* source = *sourceStart;
-    UTF32* target = *targetStart;
-    UTF32 ch, ch2;
+    const siUTF16* source = *sourceStart;
+    siUTF32* target = *targetStart;
+    siUTF32 ch, ch2;
     while (source < sourceEnd) {
-	const UTF16* oldSource = source; /*  In case we have to back up because of target overflow. */
+	const siUTF16* oldSource = source; /*  In case we have to back up because of target overflow. */
 	ch = *source++;
-	/* If we have a surrogate pair, convert to UTF32 first. */
+	/* If we have a surrogate pair, convert to siUTF32 first. */
 	if (ch >= UNI_SUR_HIGH_START && ch <= UNI_SUR_HIGH_END) {
 	    /* If the 16 bits following the high surrogate are in the source buffer... */
 	    if (source < sourceEnd) {
@@ -187,7 +187,7 @@ static const char trailingBytesForUTF8[256] = {
  * This table contains as many values as there might be trailing bytes
  * in a UTF-8 sequence.
  */
-static const UTF32 offsetsFromUTF8[6] = { 0x00000000UL, 0x00003080UL, 0x000E2080UL, 
+static const siUTF32 offsetsFromUTF8[6] = { 0x00000000UL, 0x00003080UL, 0x000E2080UL,
 		     0x03C82080UL, 0xFA082080UL, 0x82082080UL };
 
 /*
@@ -197,7 +197,7 @@ static const UTF32 offsetsFromUTF8[6] = { 0x00000000UL, 0x00003080UL, 0x000E2080
  * (I.e., one byte sequence, two byte... etc.). Remember that sequencs
  * for *legal* UTF-8 will be 4 or fewer bytes total.
  */
-static const UTF8 firstByteMark[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC };
+static const siUTF8 firstByteMark[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC };
 
 /* --------------------------------------------------------------------- */
 
@@ -212,23 +212,23 @@ static const UTF8 firstByteMark[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC 
 /* --------------------------------------------------------------------- */
 
 ConversionResult ConvertUTF16toUTF8 (
-	const UTF16** sourceStart, const UTF16* sourceEnd, 
-	UTF8** targetStart, UTF8* targetEnd, ConversionFlags flags) {
+	const siUTF16** sourceStart, const siUTF16* sourceEnd,
+	siUTF8** targetStart, siUTF8* targetEnd, ConversionFlags flags) {
     ConversionResult result = conversionOK;
-    const UTF16* source = *sourceStart;
-    UTF8* target = *targetStart;
+    const siUTF16* source = *sourceStart;
+    siUTF8* target = *targetStart;
     while (source < sourceEnd) {
-	UTF32 ch;
+	siUTF32 ch;
 	unsigned short bytesToWrite = 0;
-	const UTF32 byteMask = 0xBF;
-	const UTF32 byteMark = 0x80; 
-	const UTF16* oldSource = source; /* In case we have to back up because of target overflow. */
+	const siUTF32 byteMask = 0xBF;
+	const siUTF32 byteMark = 0x80;
+	const siUTF16* oldSource = source; /* In case we have to back up because of target overflow. */
 	ch = *source++;
 	/* If we have a surrogate pair, convert to UTF32 first. */
 	if (ch >= UNI_SUR_HIGH_START && ch <= UNI_SUR_HIGH_END) {
 	    /* If the 16 bits following the high surrogate are in the source buffer... */
 	    if (source < sourceEnd) {
-		UTF32 ch2 = *source;
+		siUTF32 ch2 = *source;
 		/* If it's a low surrogate, convert to UTF32. */
 		if (ch2 >= UNI_SUR_LOW_START && ch2 <= UNI_SUR_LOW_END) {
 		    ch = ((ch - UNI_SUR_HIGH_START) << halfShift)
@@ -253,10 +253,10 @@ ConversionResult ConvertUTF16toUTF8 (
 	    }
 	}
 	/* Figure out how many bytes the result will require */
-	if (ch < (UTF32)0x80) {	     bytesToWrite = 1;
-	} else if (ch < (UTF32)0x800) {     bytesToWrite = 2;
-	} else if (ch < (UTF32)0x10000) {   bytesToWrite = 3;
-	} else if (ch < (UTF32)0x110000) {  bytesToWrite = 4;
+	if (ch < (siUTF32)0x80) {	     bytesToWrite = 1;
+	} else if (ch < (siUTF32)0x800) {     bytesToWrite = 2;
+	} else if (ch < (siUTF32)0x10000) {   bytesToWrite = 3;
+	} else if (ch < (siUTF32)0x110000) {  bytesToWrite = 4;
 	} else {			    bytesToWrite = 3;
 					    ch = UNI_REPLACEMENT_CHAR;
 	}
@@ -267,10 +267,10 @@ ConversionResult ConvertUTF16toUTF8 (
 	    target -= bytesToWrite; result = targetExhausted; break;
 	}
 	switch (bytesToWrite) { /* note: everything falls through. */
-	    case 4: *--target = (UTF8)((ch | byteMark) & byteMask); ch >>= 6;
-	    case 3: *--target = (UTF8)((ch | byteMark) & byteMask); ch >>= 6;
-	    case 2: *--target = (UTF8)((ch | byteMark) & byteMask); ch >>= 6;
-	    case 1: *--target =  (UTF8)(ch | firstByteMark[bytesToWrite]);
+	    case 4: *--target = (siUTF8)((ch | byteMark) & byteMask); ch >>= 6;
+	    case 3: *--target = (siUTF8)((ch | byteMark) & byteMask); ch >>= 6;
+	    case 2: *--target = (siUTF8)((ch | byteMark) & byteMask); ch >>= 6;
+	    case 1: *--target =  (siUTF8)(ch | firstByteMark[bytesToWrite]);
 	}
 	target += bytesToWrite;
     }
@@ -292,9 +292,9 @@ ConversionResult ConvertUTF16toUTF8 (
  * definition of UTF-8 goes up to 4-byte sequences.
  */
 
-static Boolean isLegalUTF8(const UTF8 *source, int length) {
-    UTF8 a;
-    const UTF8 *srcptr = source+length;
+static Boolean isLegalUTF8(const siUTF8 *source, int length) {
+    siUTF8 a;
+    const siUTF8 *srcptr = source+length;
     switch (length) {
     default: return false;
 	/* Everything else falls through when "true"... */
@@ -323,7 +323,7 @@ static Boolean isLegalUTF8(const UTF8 *source, int length) {
  * Exported function to return whether a UTF-8 sequence is legal or not.
  * This is not used here; it's just exported.
  */
-Boolean isLegalUTF8Sequence(const UTF8 *source, const UTF8 *sourceEnd) {
+Boolean isLegalUTF8Sequence(const siUTF8 *source, const siUTF8 *sourceEnd) {
     int length = trailingBytesForUTF8[*source]+1;
     if (source+length > sourceEnd) {
 	return false;
@@ -334,13 +334,13 @@ Boolean isLegalUTF8Sequence(const UTF8 *source, const UTF8 *sourceEnd) {
 /* --------------------------------------------------------------------- */
 
 ConversionResult ConvertUTF8toUTF16 (
-	const UTF8** sourceStart, const UTF8* sourceEnd, 
-	UTF16** targetStart, UTF16* targetEnd, ConversionFlags flags) {
+	const siUTF8** sourceStart, const siUTF8* sourceEnd,
+	siUTF16** targetStart, siUTF16* targetEnd, ConversionFlags flags) {
     ConversionResult result = conversionOK;
-    const UTF8* source = *sourceStart;
-    UTF16* target = *targetStart;
+    const siUTF8* source = *sourceStart;
+    siUTF16* target = *targetStart;
     while (source < sourceEnd) {
-	UTF32 ch = 0;
+	siUTF32 ch = 0;
 	unsigned short extraBytesToRead = trailingBytesForUTF8[*source];
 	if (source + extraBytesToRead >= sourceEnd) {
 	    result = sourceExhausted; break;
@@ -378,7 +378,7 @@ ConversionResult ConvertUTF8toUTF16 (
 		    *target++ = UNI_REPLACEMENT_CHAR;
 		}
 	    } else {
-		*target++ = (UTF16)ch; /* normal case */
+		*target++ = (siUTF16)ch; /* normal case */
 	    }
 	} else if (ch > UNI_MAX_UTF16) {
 	    if (flags == strictConversion) {
@@ -395,8 +395,8 @@ ConversionResult ConvertUTF8toUTF16 (
 		result = targetExhausted; break;
 	    }
 	    ch -= halfBase;
-	    *target++ = (UTF16)((ch >> halfShift) + UNI_SUR_HIGH_START);
-	    *target++ = (UTF16)((ch & halfMask) + UNI_SUR_LOW_START);
+	    *target++ = (siUTF16)((ch >> halfShift) + UNI_SUR_HIGH_START);
+	    *target++ = (siUTF16)((ch & halfMask) + UNI_SUR_LOW_START);
 	}
     }
     *sourceStart = source;
@@ -407,16 +407,16 @@ ConversionResult ConvertUTF8toUTF16 (
 /* --------------------------------------------------------------------- */
 
 ConversionResult ConvertUTF32toUTF8 (
-	const UTF32** sourceStart, const UTF32* sourceEnd, 
-	UTF8** targetStart, UTF8* targetEnd, ConversionFlags flags) {
+	const siUTF32** sourceStart, const siUTF32* sourceEnd,
+	siUTF8** targetStart, siUTF8* targetEnd, ConversionFlags flags) {
     ConversionResult result = conversionOK;
-    const UTF32* source = *sourceStart;
-    UTF8* target = *targetStart;
+    const siUTF32* source = *sourceStart;
+    siUTF8* target = *targetStart;
     while (source < sourceEnd) {
-	UTF32 ch;
+	siUTF32 ch;
 	unsigned short bytesToWrite = 0;
-	const UTF32 byteMask = 0xBF;
-	const UTF32 byteMark = 0x80; 
+	const siUTF32 byteMask = 0xBF;
+	const siUTF32 byteMark = 0x80;
 	ch = *source++;
 	if (flags == strictConversion ) {
 	    /* UTF-16 surrogate values are illegal in UTF-32 */
@@ -430,9 +430,9 @@ ConversionResult ConvertUTF32toUTF8 (
 	 * Figure out how many bytes the result will require. Turn any
 	 * illegally large UTF32 things (> Plane 17) into replacement chars.
 	 */
-	if (ch < (UTF32)0x80) {	     bytesToWrite = 1;
-	} else if (ch < (UTF32)0x800) {     bytesToWrite = 2;
-	} else if (ch < (UTF32)0x10000) {   bytesToWrite = 3;
+	if (ch < (siUTF32)0x80) {	     bytesToWrite = 1;
+	} else if (ch < (siUTF32)0x800) {     bytesToWrite = 2;
+	} else if (ch < (siUTF32)0x10000) {   bytesToWrite = 3;
 	} else if (ch <= UNI_MAX_LEGAL_UTF32) {  bytesToWrite = 4;
 	} else {			    bytesToWrite = 3;
 					    ch = UNI_REPLACEMENT_CHAR;
@@ -445,10 +445,10 @@ ConversionResult ConvertUTF32toUTF8 (
 	    target -= bytesToWrite; result = targetExhausted; break;
 	}
 	switch (bytesToWrite) { /* note: everything falls through. */
-	    case 4: *--target = (UTF8)((ch | byteMark) & byteMask); ch >>= 6;
-	    case 3: *--target = (UTF8)((ch | byteMark) & byteMask); ch >>= 6;
-	    case 2: *--target = (UTF8)((ch | byteMark) & byteMask); ch >>= 6;
-	    case 1: *--target = (UTF8) (ch | firstByteMark[bytesToWrite]);
+	    case 4: *--target = (siUTF8)((ch | byteMark) & byteMask); ch >>= 6;
+	    case 3: *--target = (siUTF8)((ch | byteMark) & byteMask); ch >>= 6;
+	    case 2: *--target = (siUTF8)((ch | byteMark) & byteMask); ch >>= 6;
+	    case 1: *--target = (siUTF8) (ch | firstByteMark[bytesToWrite]);
 	}
 	target += bytesToWrite;
     }
@@ -460,13 +460,13 @@ ConversionResult ConvertUTF32toUTF8 (
 /* --------------------------------------------------------------------- */
 
 ConversionResult ConvertUTF8toUTF32 (
-	const UTF8** sourceStart, const UTF8* sourceEnd, 
-	UTF32** targetStart, UTF32* targetEnd, ConversionFlags flags) {
+	const siUTF8** sourceStart, const siUTF8* sourceEnd,
+	siUTF32** targetStart, siUTF32* targetEnd, ConversionFlags flags) {
     ConversionResult result = conversionOK;
-    const UTF8* source = *sourceStart;
-    UTF32* target = *targetStart;
+    const siUTF8* source = *sourceStart;
+    siUTF32* target = *targetStart;
     while (source < sourceEnd) {
-	UTF32 ch = 0;
+	siUTF32 ch = 0;
 	unsigned short extraBytesToRead = trailingBytesForUTF8[*source];
 	if (source + extraBytesToRead >= sourceEnd) {
 	    result = sourceExhausted; break;
